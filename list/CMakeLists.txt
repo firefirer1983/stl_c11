@@ -1,7 +1,7 @@
 set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -g -O0")
 
-set(DECORATOR
-	decorator.cpp
+set(LIST
+	list.cpp
 )
 
 include_directories("${PROJECT_SOURCE_DIR}/../googletest/googletest/include")
@@ -17,12 +17,12 @@ find_library(PTHREAD
 	PATHS /usr/lib/x86_64-linux-gnu/
 	NO_DEFAULT_PATH)
 
-add_executable(decorator-exe
-	${DECORATOR}
+add_executable(list-exe
+	${LIST}
 )
 
 target_link_libraries(
-	decorator-exe
+	list-exe
 	${GTEST}
 	${PTHREAD}
 )

@@ -1,7 +1,7 @@
 set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -g -O0")
 
-set(DECORATOR
-	decorator.cpp
+set(UNORDERED_MAP
+	unordered_map.cpp
 )
 
 include_directories("${PROJECT_SOURCE_DIR}/../googletest/googletest/include")
@@ -17,12 +17,12 @@ find_library(PTHREAD
 	PATHS /usr/lib/x86_64-linux-gnu/
 	NO_DEFAULT_PATH)
 
-add_executable(decorator-exe
-	${DECORATOR}
+add_executable(unordered_map-exe
+	${UNORDERED_MAP}
 )
 
 target_link_libraries(
-	decorator-exe
+	unordered_map-exe
 	${GTEST}
 	${PTHREAD}
 )
