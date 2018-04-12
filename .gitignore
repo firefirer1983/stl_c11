@@ -34,3 +34,4 @@
 *.bak
 **build/
 .idea/
+googletest/
