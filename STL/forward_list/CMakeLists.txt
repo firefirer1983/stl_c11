@@ -1,17 +1,17 @@
 set(CMAKE_CXX_FLAGS "-Wall -std=gnu++11 -g -O0 -pthread")
-set(googleTestDir ../googletest)
+set(googleTestDir ../../googletest)
 include_directories(${googleTestDir}/googletest/include)
 
 set(SOURCE
-	unordered_set.cpp
+	forward_list.cpp
 )
 
-add_executable(unordered_set
+add_executable(forward_list
 	${SOURCE}
 )
 
 target_link_libraries(
-	unordered_set
+	forward_list
 	gtest
 )
 

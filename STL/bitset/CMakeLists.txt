@@ -1,17 +1,17 @@
 set(CMAKE_CXX_FLAGS "-Wall -std=gnu++11 -g -O0 -pthread")
-set(googleTestDir ../googletest)
+set(googleTestDir ../../googletest)
 include_directories(${googleTestDir}/googletest/include)
 
 set(SOURCE
-	queue.cpp
+	bitset.cpp
 )
 
-add_executable(queue
+add_executable(bitset
 	${SOURCE}
 )
 
 target_link_libraries(
-	queue
+	bitset
 	gtest
 )
 
