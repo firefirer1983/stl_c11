@@ -20,6 +20,7 @@ protected:
 class Vector {
 public:
   Vector(){
+    cout << "Constructor" << endl;
     array_ = new int[10];
     for(int i=0; i<10; i++) {
       array_[i] = i;
@@ -38,7 +39,7 @@ public:
     v.array_ = nullptr;
   }
   ~Vector(){
-    delete array_;
+    delete [] array_;
   }
   void print_v() {
     for(int i=0; i<10; i++) {
@@ -54,14 +55,15 @@ void PrintVector(Vector vct) {
 }
 
 Vector CreateVector() {
-  Vector new_vct = *(new Vector);
-  return new_vct;
+  return Vector();
 }
 
 TEST_F(GTest, Test_GTest){
   Vector reusable = CreateVector();
   PrintVector(reusable);
   PrintVector(move(reusable));
+  PrintVector(CreateVector());
+  PrintVector(Vector());
 
   EXPECT_EQ(reusable.array_, nullptr);
 }
