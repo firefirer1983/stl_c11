@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <list>
-
+#include <cmath>
 using namespace std;
 
 class GTest : public ::testing::Test {
@@ -45,11 +45,110 @@ TEST_F(GTest, Init_GTest){
   list_copy.erase(it);
   print_l(list_copy);
 
-  bool test = false;
-  list_copy.remove_if(test);
 }
+
+bool is_odd(const int &value) {
+  return value%2;
+}
+
+struct is_single_digit{
+  bool operator()(const int &value){
+    return value < 10;
+  }
+};
+
+TEST_F(GTest, REMOVE_IF_GTest) {
+
+  list<int> list_tst = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20};
+  print_l(list_tst);
+  cout << "Remove all the odd value:" << endl;
+  list_tst.remove_if(is_odd);
+  print_l(list_tst);
+  list_tst.remove_if(is_single_digit());
+  print_l(list_tst);
+  cout << "Remove all the 1 digit number" << endl;
+
+}
+
+TEST_F(GTest, ADVANCE_GTest) {
+
+  list<int> list_tst = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20};
+  print_l(list_tst);
+  auto it = list_tst.begin();
+  std::advance(it, 5);
+  cout << "From the begin advance 5 element:" << endl;
+  cout << *it << endl;
+  EXPECT_EQ(*it, 5);
+}
+
+bool compare_max(const int &first, const int &second) {
+    return (first > second);
+}
+
+TEST_F(GTest, SORT_GTest) {
+
+  list<int> list_tst = {16,1,2,7,4,5,6,3,8,9,10,11,12,13,14,15,0,17,18,19,20};
+  print_l(list_tst);
+  cout << "After sort with max algothm:" << endl;
+  list_tst.sort(compare_max);
+  print_l(list_tst);
+  auto it = list_tst.begin();
+  for(int i=20; i>=0; i--) {
+    EXPECT_EQ(i, *it);
+    it ++;
+  }
+}
+
+TEST_F(GTest, SWAP_GTest) {
+
+  list<int> list_tst_first = {0,1,2,3,4};
+  list<int> list_tst_second = {5,6,7,8,9};
+  print_l(list_tst_first);
+  print_l(list_tst_second);
+  cout << "After swap:" << endl;
+  list_tst_first.swap(list_tst_second);
+  print_l(list_tst_first);
+  print_l(list_tst_second);
+}
+
+TEST_F(GTest, SPLICE_GTest) {
+
+  list<int> list_tst_first = {0,1,2,3,4,5,10,11,12};
+  list<int> list_tst_second = {11,12,6,7,8,9,13,14};
+  print_l(list_tst_first);
+  print_l(list_tst_second);
+  cout << "After splice:" << endl;
+  auto insert = list_tst_first.begin();
+  std::advance(insert, 6);
+  auto begin = list_tst_second.begin();
+  std::advance(begin,2);
+  cout << "begin: " << *begin << endl;
+  auto end = list_tst_second.begin();
+  std::advance(end,6);
+  cout << "end: " << *end << endl;
+  list_tst_first.splice(insert,list_tst_second,begin,end );
+  print_l(list_tst_first);
+  print_l(list_tst_second);
+}
+struct is_near{
+  bool operator() (const double &first, const  double &second) {
+    return (fabs(first-second)<1);
+  }
+};
+TEST_F(GTest, UNIQUE_GTest){
+  list<double> list_tst = {0,1,1,2,4,5,10,10,12};
+  print_l(list_tst);
+  list_tst.unique();
+  list<double> list_tst_double = {0,1.1,1.2,2,4,5,10.5,10.6,12};
+  print_l(list_tst_double);
+  list_tst_double.unique(is_near());
+  print_l(list_tst);
+}
+
 int main(int argc, char *argv[])
 {
+
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
