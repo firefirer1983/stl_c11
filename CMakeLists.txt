@@ -23,5 +23,6 @@ add_subdirectory(C11/smart_pointer)
 add_subdirectory(C11/operator_reload)
 add_subdirectory(C11/variadic_template)
 
+add_subdirectory(CONCURRENCY/test_and_set)
 
 
