@@ -135,6 +135,15 @@ struct is_near{
     return (fabs(first-second)<1);
   }
 };
+struct Vector2 {
+  Vector2() {
+    cout << "Vector2 Created!" << endl;
+  }
+  ~Vector2() {
+    cout << "Vector2 Destroyed!" << endl;
+  }
+  float x,y;
+};
 TEST_F(GTest, UNIQUE_GTest){
   list<double> list_tst = {0,1,1,2,4,5,10,10,12};
   print_l(list_tst);
@@ -143,6 +152,9 @@ TEST_F(GTest, UNIQUE_GTest){
   print_l(list_tst_double);
   list_tst_double.unique(is_near());
   print_l(list_tst);
+  {
+    Vector2 &vct = *(new Vector2);
+  }
 }
 
 int main(int argc, char *argv[])
