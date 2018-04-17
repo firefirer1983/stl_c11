@@ -23,12 +23,13 @@ bool test_and_set(bool *flag) {
   *flag = true;
   return prev;
 }
+
 struct lock {
   lock() {
     held.clear();
   }
   void acquire() {
-    while(held.test_and_set());
+    while(held.test_and_set()){usleep(10*1000);};
   }
 
   void release() {
@@ -43,14 +44,14 @@ unsigned sum = 0;
 
 lock spin_lock;
 
-void Counting(const int offset, const unsigned repeat){
-  for(unsigned i=0; i<repeat; i++) {
-    spin_lock.acquire();
+void Counting(const int offset, const unsigned repeat) {
+  spin_lock.acquire();
+  for (unsigned i = 0; i < repeat; i++) {
     cout << offset << endl;
     sum += offset;
-    usleep(1);
-    spin_lock.release();
+    usleep(1*1000);
   }
+  spin_lock.release();
 
 }
 

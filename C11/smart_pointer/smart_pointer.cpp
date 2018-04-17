@@ -1,9 +1,4 @@
 #include <gtest/gtest.h>
-#include <string>
-#include <vector>
-#include <ostream>
-#include <array>
-#include <stdexcept>
 #include <memory>
 
 using namespace std;
@@ -35,7 +30,6 @@ public:
     return value;
   }
 };
-
 
 TEST_F(GTest, UNIQUE_PTR_GTest){
   {
@@ -91,6 +85,137 @@ TEST_F(GTest, WEAK_PTR_GTest){
 
 }
 
+struct RefCount {
+  RefCount(): ref_(0) {
+  }
+
+  void AddRef() {
+    ++ref_;
+  }
+
+  unsigned ReleaseRef() {
+    return --ref_;
+  }
+
+  unsigned GetRef() {
+    return ref_;
+  }
+
+private:
+  unsigned ref_;
+};
+
+template<typename T>
+class sp {
+public:
+  sp() {
+    ptr_ = nullptr;
+    rc_ = new RefCount;
+    rc_->AddRef();
+    cout << "sp empty constructor rc: " << rc_->GetRef() << endl;
+  }
+
+  sp(T *ptr) {
+    ptr_ = ptr;
+    rc_ = new RefCount;
+    rc_->AddRef();
+    cout << "sp constructor rc: " << rc_->GetRef() << endl;
+  }
+
+  ~sp() {
+    cout << "sp deconstructor rc: " << rc_->GetRef() << endl;
+    if (!rc_->ReleaseRef()) {
+      delete ptr_;
+      ptr_ = nullptr;
+      delete rc_;
+    }
+    rc_ = nullptr;
+
+  }
+
+  sp(const sp<T> &p) :rc_(p.rc_), ptr_(p.ptr_){
+    if(&p != this) {
+      rc_->AddRef();
+      cout << "sp copy constructor rc: " << rc_->GetRef() << endl;
+    }
+  }
+
+  sp<T> &operator=(const sp<T> &p) {
+    if(&p != this) {
+      /*
+      *  because the old value is obsoleted ,
+       *  so the entity it original hold should check for deconstructor
+      */
+      if (!(rc_->ReleaseRef())) {
+        cout << " = operator make old right value refcount == 0" << endl;
+        delete ptr_;
+        delete rc_;
+      }
+      p.rc_->AddRef();
+      rc_ = p.rc_;
+      ptr_ = p.ptr_;
+    }
+    cout << "sp copy constructor rc: " << rc_->GetRef() << endl;
+    return *this;
+  }
+
+  T *operator->() {
+    return ptr_;
+  }
+
+  T& operator*() {
+    return *ptr_;
+  }
+
+  bool Expired() {
+    return ptr_ == nullptr;
+  }
+
+private:
+  RefCount *rc_;
+  T *ptr_;
+};
+
+class Entity {
+public:
+  Entity(const string &name) {
+    cout << "Entity Created" << endl;
+    m_name = name;
+  }
+
+  ~Entity() {
+    cout << "Entity Destroyed" << endl;
+  }
+
+  string GetName() {
+    return m_name;
+  }
+
+private:
+  string m_name;
+};
+
+TEST_F(GTest, SMART_PTR_GTest) {
+  {
+    sp<Entity> sp1;
+    cout << "entered 1st" << endl;
+    {
+      cout << "entered 2nd" << endl;
+      sp<Entity> sp2(new Entity("fyman"));
+      sp2->GetName();
+      sp<Entity> sp0 = sp2;
+      sp1 = sp2;
+      cout << "exiting 2nd" << endl;
+      EXPECT_FALSE(sp2.Expired());
+    }
+    EXPECT_FALSE(sp1.Expired());
+    cout << "exited 2nd" << endl;
+    cout << "exiting 1st" << endl;
+    sp<Entity> sp3(sp1);
+  }
+  cout << "exited 1st" << endl;
+
+}
 
 int main(int argc, char *argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
