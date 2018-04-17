@@ -61,6 +61,18 @@ TEST_F(GTest, Init_GTest){
   cout << endl;
 
 }
+TEST_F(GTest, Insert_GTest) {
+  vector<Box> box_vct;
+  box_vct.reserve(10);
+  for(int i=0; i<10; i++ ) {
+    box_vct.emplace_back(i);
+  }
+
+  for(auto &b: box_vct) {
+    cout << b.Size() << " ";
+  }
+  cout << endl;
+}
 
 int main(int argc, char *argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
