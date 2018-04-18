@@ -16,10 +16,10 @@ void print(){
   cout << endl;
 }
 
-template <typename T, typename...R>
-void print(T t, R...r) {
+template <typename T, typename ...Args>
+void print(T t, Args... args) {
   cout << t << " ";
-  print(r...);
+  print(args...);
 };
 
 TEST_F(GTest, PRINT_GTest){
