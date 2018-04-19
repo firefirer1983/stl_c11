@@ -70,7 +70,11 @@ function<void ()> InjectTask(T *i, void (T::*func)(Args...), Args... args) {
   return bind(func, i, args...);
 };
 
+void Size(int size) {
+  cout << "Size of "<< size << endl;
+}
 
+typedef void(SizeFunc_t)(int);
 
 TEST_F(GTest, Bind_Template_GTest) {
   Person *xy = new Person("xy");
@@ -79,6 +83,12 @@ TEST_F(GTest, Bind_Template_GTest) {
   cout << "=================================" << endl;
   auto func = InjectTask(xy, &Person::SayHi, string("i love you baby"));
   func();
+
+  void (*size_func_ptr)(int) = &Size;
+  (*size_func_ptr)(5);
+
+  SizeFunc_t sizeFunc = Size;
+  sizeFunc(5);
 }
 
 
