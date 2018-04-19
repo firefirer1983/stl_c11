@@ -74,7 +74,7 @@ void Size(int size) {
   cout << "Size of "<< size << endl;
 }
 
-typedef void(SizeFunc_t)(int);
+typedef void(*SizeFunc_t)(int);
 
 TEST_F(GTest, Bind_Template_GTest) {
   Person *xy = new Person("xy");
