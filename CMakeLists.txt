@@ -7,6 +7,8 @@ add_subdirectory(googletest)
 
 add_subdirectory(BASIC/inherit_construct_deconstruct)
 add_subdirectory(BASIC/variadic_macro)
+add_subdirectory(BASIC/type_cast)
+
 
 add_subdirectory(STL/array)
 add_subdirectory(STL/bitset)

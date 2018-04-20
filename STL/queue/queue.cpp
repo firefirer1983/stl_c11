@@ -1,14 +1,12 @@
 #include <gtest/gtest.h>
 #include <string>
-#include <vector>
 #include <ostream>
-#include <array>
+#include <queue>
 
-using std::vector;
 using std::string;
 using std::cout;
 using std::endl;
-using std::array;
+using std::queue;
 
 class GTest : public ::testing::Test {
 
@@ -20,11 +18,29 @@ protected:
   }
 };
 
-TEST_F(GTest, Init_GTest){
-  const int ARRAY_SIZE = 100;
-  array<int, ARRAY_SIZE> array_test = {0,1,2,3};
-  for(int i=0; i< ARRAY_SIZE; i++) {
-    cout << "array_test[" << i << "]=" << array_test[i] << endl;
+class Base {
+  int idx;
+public:
+  Base(int id):idx(id) {
+  }
+  int Index() {
+    return  idx;
+  }
+};
+
+TEST_F(GTest, Queue_GTest){
+  queue<Base> base_queue;
+  cout << "queue is a FIFO(First in first out data structure)" << endl;
+  cout << "init queue:" << endl;
+  for(int i=0; i<10; i++) {
+    cout << i << " " ;
+    base_queue.emplace(i);
+  }
+  cout << endl;
+  cout << "Queue size: " << base_queue.size() << endl;
+  while (!base_queue.empty()) {
+    cout << base_queue.front().Index() << " ";
+    base_queue.pop();
   }
 }
 int main(int argc, char *argv[])

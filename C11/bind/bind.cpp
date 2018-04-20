@@ -89,6 +89,8 @@ TEST_F(GTest, Bind_Template_GTest) {
 
   SizeFunc_t sizeFunc = Size;
   sizeFunc(5);
+
+
 }
 
 
