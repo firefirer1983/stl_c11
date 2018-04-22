@@ -87,10 +87,11 @@ TEST_F(GTest, Bind_Template_GTest) {
   void (*size_func_ptr)(int) = &Size;
   (*size_func_ptr)(5);
 
+  void (*size_func)(int) = Size;
+  (size_func)(5);
+
   SizeFunc_t sizeFunc = Size;
   sizeFunc(5);
-
-
 }
 
 
