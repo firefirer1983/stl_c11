@@ -51,6 +51,11 @@ TEST_F(GTest, Init_GTest){
   cout << "GREEN BUCKET: " << color_map.bucket("GREEN") << endl;
   cout << "BLUE BUCKET: " << color_map.bucket("GREEN") << endl;
 
+  cout << "map size: " << color_map.size() << endl;
+  cout << "load factor" << color_map.load_factor() << endl;
+  cout << "buckets count: " << color_map.bucket_count() << endl;
+  cout << "max load factor" << color_map.max_load_factor() << endl;
+
 }
 int main(int argc, char *argv[])
 {
