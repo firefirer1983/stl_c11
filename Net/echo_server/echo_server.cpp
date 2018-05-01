@@ -7,9 +7,26 @@
 #include <time.h>
 #include <unistd.h>
 #include <cstdlib>
+#include <errno.h>
+
+const int BUF_SIZE = 2048;
 
 char ip[] = "255.255.255.255";
 const unsigned short port = 3456;
+
+void str_echo(int fd) {
+  ssize_t n;
+  char buf[BUF_SIZE];
+  again:
+  while((n=read(fd, buf, sizeof(buf))) > 0) {
+    write(fd, buf, sizeof(buf));
+  }
+  if( n<0 && errno == EINTR){
+    goto again;
+  }
+  memset(buf, 0, sizeof(buf));
+}
+
 int main(int argc, char *argv[])
 {
   int res = 0;
@@ -53,6 +70,7 @@ int main(int argc, char *argv[])
         char buf[2048];
         snprintf(buf, sizeof(buf), "%.24s\r\n", ctime(&now));
         write(csock, buf, strlen(buf));
+        str_echo(csock);
         close(csock);
         exit(0);
       }
