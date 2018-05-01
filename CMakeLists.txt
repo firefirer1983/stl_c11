@@ -34,4 +34,6 @@ add_subdirectory(C11/bind)
 
 add_subdirectory(CONCURRENCY/test_and_set)
 
-
+add_subdirectory(Net/time_svr)
+add_subdirectory(Net/echo_server)
+add_subdirectory(Net/echo_client)
