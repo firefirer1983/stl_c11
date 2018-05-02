@@ -9,7 +9,7 @@ const int BUF_SIZE = 2048;
 
 void str_cli(FILE *fp, int sockfd) {
   char send_line[BUF_SIZE], recv_line[BUF_SIZE];
-  while(fgets(send_line, sizeof(send_line), fp) != nullptr) {
+  while(fgets(send_line, sizeof(send_line), stdin) != nullptr) {
     writen(sockfd, send_line,  strlen(send_line));
     ssize_t res = readline(sockfd, recv_line, sizeof(recv_line));
     if(res == 0) {
@@ -60,12 +60,6 @@ int main(int argc, char *argv[])
     perror("connect failed!");
     return -1;
   }
-  FILE *rdfp = fopen("./message.txt", "rb");
-  if(!rdfp) {
-    perror("open message.txt failed!\n");
-    return -1;
-  }
-  str_cli(rdfp, sockfd);
-  fclose(rdfp);
+  str_cli(nullptr, sockfd);
   return 0;
 }

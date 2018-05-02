@@ -66,12 +66,6 @@ int main(int argc, char *argv[])
     if(pid == 0) {
       close(sockfd);
       if(csock > 0) {
-//        inet_ntop(AF_INET, &csa, ip, csa_len);
-//        printf("child:pid:%d connect from %s:%d\n", getpid(), ip, ntohs(((struct sockaddr_in*)(&csa))->sin_port));
-//        time_t now = time(nullptr);
-//        char buf[2048];
-//        snprintf(buf, sizeof(buf), "%.24s\r\n", ctime(&now));
-//        write(csock, buf, strlen(buf));
         str_echo(csock);
         close(csock);
         exit(0);
