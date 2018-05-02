@@ -5,7 +5,8 @@ add_executable(
 		echo_client.cpp
 )
 
-target_link_libraries(
-		echo_client
+add_executable(
+		echo_server
+		echo_server.cpp
 )
 
