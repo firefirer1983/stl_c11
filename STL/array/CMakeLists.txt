@@ -4,7 +4,7 @@ include_directories(${googleTestDir}/googletest/include)
 
 set(SOURCE
 	array.cpp
-)
+        ../../Net/echo_client/uni.h ../../Net/echo_client/rwops.h)
 
 add_executable(array
 	${SOURCE}

@@ -1,37 +1,17 @@
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
-#include <unistd.h>
+
 #include <cstdlib>
-#include <errno.h>
+
+
+#include "uni.h"
+#include "rwops.h"
 
 const int BUF_SIZE = 2048;
 
 char ip[] = "255.255.255.255";
 const unsigned short port = 3456;
-
-int writen(int fd, char *vptr, size_t n) {
-  char *ptr = vptr;
-  size_t left = n;
-  ssize_t writed = 0;
-  while(left > 0) {
-    writed = write(fd, ptr, left);
-    if( writed <= 0) {
-      if( errno == EINTR) {
-        writed = 0;
-      } else {
-        return -1;
-      }
-    }
-    left -= writed;
-    ptr += writed;
-  }
-  return (n-left);
-}
 
 void str_echo(int fd) {
   ssize_t n;

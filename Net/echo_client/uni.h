@@ -1,0 +1,10 @@
+#ifndef _UNI_H_
+#define _UNI_H_
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <errno.h>
+#include <stdio.h>
+#include <unistd.h>
+#endif //_UNI_H_
