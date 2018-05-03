@@ -3,15 +3,22 @@
 #include <time.h>
 
 #include <cstdlib>
-
+#include <sys/wait.h>
 
 #include "uni.h"
 #include "rwops.h"
+#include "signalproc.h"
 
 const int BUF_SIZE = 2048;
 
 char ip[] = "255.255.255.255";
 const unsigned short port = 3456;
+
+void waitchld(int sig) {
+  int status;
+  int pid = waitpid(-1, &status, WNOHANG);
+  printf("pid:%d exit:%d\n", pid, status);
+}
 
 void str_echo(int fd) {
   ssize_t n;
@@ -58,6 +65,8 @@ int main(int argc, char *argv[])
   }
 
   printf("Datetime server is on, pid:%d\n",getpid());
+  Signal(SIGCHLD, waitchld);
+
   while(1) {
     sockaddr csa;
     socklen_t csa_len;
@@ -74,6 +83,4 @@ int main(int argc, char *argv[])
       close(csock);
     }
   }
-
-  return 0;
 }

@@ -61,5 +61,5 @@ int main(int argc, char *argv[])
     return -1;
   }
   str_cli(nullptr, sockfd);
-  return 0;
+  exit(0);
 }
