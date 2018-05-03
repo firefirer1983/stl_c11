@@ -20,6 +20,14 @@ void waitchld(int sig) {
   printf("pid:%d exit:%d\n", pid, status);
 }
 
+void waitact(int sig, siginfo_t *ifo, void *ptr) {
+  int status;
+
+  int pid = waitpid(-1, &status, WNOHANG);
+  printf("pid:%d exit:%d\n", pid, status);
+}
+
+
 void str_echo(int fd) {
   ssize_t n;
   char buf[BUF_SIZE] = {0};
@@ -33,7 +41,6 @@ void str_echo(int fd) {
   if( n<0 && errno == EINTR){
     goto again;
   }
-  memset(buf, 0, sizeof(buf));
 }
 
 int main(int argc, char *argv[])
@@ -65,12 +72,18 @@ int main(int argc, char *argv[])
   }
 
   printf("Datetime server is on, pid:%d\n",getpid());
-  Signal(SIGCHLD, waitchld);
+  Signal(SIGCHLD, waitact);
 
   while(1) {
     sockaddr csa;
     socklen_t csa_len;
     int csock = accept(sockfd, &csa, &csa_len);
+    printf("accept: csock:%d errno:%s\n",csock,strerror(errno));
+    if(csock<0 && errno == EINTR) {
+      printf("accept interrupt by sigchld  cscock:%d errno:%s\n", csock, strerror(errno));
+      continue;
+    }
+
     int pid = fork();
     if(pid == 0) {
       close(sockfd);
@@ -80,6 +93,7 @@ int main(int argc, char *argv[])
         exit(0);
       }
     } else {
+      printf("fork %d success!\n", pid);
       close(csock);
     }
   }
