@@ -10,9 +10,11 @@ const int BUF_SIZE = 2048;
 void str_cli(FILE *fp, int sockfd) {
   char send_line[BUF_SIZE], recv_line[BUF_SIZE];
   while(fgets(send_line, sizeof(send_line), stdin) != nullptr) {
+    perror("fgets");
     writen(sockfd, send_line,  strlen(send_line));
     ssize_t res = readline(sockfd, recv_line, sizeof(recv_line));
-    if(res == 0) {
+    printf("readline res:%ld\n",res);
+    if(res <= 0) {
       perror("server terminated!\n");
     }
     fputs(recv_line, stdout);
@@ -23,7 +25,7 @@ void str_cli(FILE *fp, int sockfd) {
 
 char ip[] = "255.255.255.255";
 char port[] = "12345";
-const char host_ip[] = "127.0.0.1";
+const char host_ip[] = "192.168.127.127";
 const char host_port[] = "3456";
 int main(int argc, char *argv[])
 {
