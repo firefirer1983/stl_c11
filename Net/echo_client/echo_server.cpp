@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
 {
   int res = 0;
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  printf("sockfd:%d\n", sockfd);
   if(sockfd < 0) {
     perror("socket create failed!");
     return -1;

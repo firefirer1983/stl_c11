@@ -10,10 +10,22 @@ const int BUF_SIZE = 2048;
 void str_cli(FILE *fp, int sockfd) {
   char send_line[BUF_SIZE], recv_line[BUF_SIZE];
   while(fgets(send_line, sizeof(send_line), stdin) != nullptr) {
-    perror("fgets");
+    if(errno) {
+      perror("fgets");
+    }
+
     writen(sockfd, send_line,  strlen(send_line));
+    perror("writen 1st");
+    sleep(1);
+    writen(sockfd, send_line,  strlen(send_line));
+    if(errno) {
+      perror("writen 2nd");
+    }
     ssize_t res = readline(sockfd, recv_line, sizeof(recv_line));
-    printf("readline res:%ld\n",res);
+
+    if(errno) {
+      perror("readline");
+    }
     if(res <= 0) {
       perror("server terminated!\n");
     }
@@ -52,6 +64,7 @@ int main(int argc, char *argv[])
     return -1;
   }
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  printf("sockfd:%d sizeof(fd_set):%lu\n", sockfd, sizeof(fd_set));
   if(sockfd < 0) {
     perror("socket create failed!");
     return -1;
