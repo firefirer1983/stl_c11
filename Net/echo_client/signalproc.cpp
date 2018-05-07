@@ -19,7 +19,6 @@ SignalProc Signal(int sig, SignalProc func)
 
 SignalProc Signal(int sig, SignalAct act)
 {
-  printf("sig act\n");
   struct sigaction sa;
   struct sigaction sa_prev;
   sigemptyset(&(sa.sa_mask));
