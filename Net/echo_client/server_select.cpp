@@ -90,7 +90,6 @@ int main(int argc, char *argv[])
           memset(buf, 0, sizeof(buf));
           int nread = read(clients[i], buf, sizeof(buf));
           if(nread > 0) {
-            printf("%s",buf);
             int nwrite = writen(clients[i], buf, nread);
 
             if(nwrite < 0) {
@@ -102,7 +101,6 @@ int main(int argc, char *argv[])
             close(clients[i]);
             clients[i] = -1;
             FD_CLR(clients[i], &rd_set);
-            printf("\n");
           } else if(errno == EINTR){
             printf("read interrupted\n");
             goto try_again;
