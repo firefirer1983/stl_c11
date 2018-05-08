@@ -59,39 +59,50 @@ int main(int argc, char *argv[])
   }
 
   printf("Datetime server is on, pid:%d\n",getpid());
-  int maxfdp1 = sockfd + 1;
   fd_set rd_set;
   int clients[CLIENT_MAX_NUM] = {-1};
+  int maxfdp1 = sizeof(clients) + 1;
+  FD_ZERO(&rd_set);
   while(1) {
-    FD_ZERO(&rd_set);
     FD_SET(sockfd, &rd_set);
-
     select(maxfdp1, &rd_set, nullptr, nullptr, nullptr);
     if(FD_ISSET(sockfd, &rd_set)) {
       sockaddr csa;
-      socklen_t csa_len;
+      socklen_t csa_len = sizeof(sockaddr);
       int csock = accept(sockfd, &csa, &csa_len);
-      printf("accept: csock:%d errno:%s\n",csock,strerror(errno));
       if(csock<0 && errno == EINTR) {
         printf("accept interrupt by sigchld  cscock:%d errno:%s\n", csock, strerror(errno));
-
         continue;
       }
-      clients[(unsigned)csock] = csock;
+
+      if(csock > 0) {
+        clients[(unsigned)csock] = csock;
+        FD_SET(csock, &rd_set);
+      }  else {
+        perror("accept failed!\n");
+      }
     }
     for(unsigned i=0; i<CLIENT_MAX_NUM; i++) {
       if(clients[i] != -1) {
         if(FD_ISSET(clients[i], &rd_set)) {
           char buf[BUF_SIZE] = {0};
           try_again:
+          memset(buf, 0, sizeof(buf));
           int nread = read(clients[i], buf, sizeof(buf));
           if(nread > 0) {
-            buf[nread+1] = 0;
-            writen(clients[i], buf, sizeof(buf));
+            printf("%s",buf);
+            int nwrite = writen(clients[i], buf, nread);
+
+            if(nwrite < 0) {
+              printf("shit happen in %d write!\n", clients[i]);
+            }
+            FD_SET(clients[i], &rd_set);
           } else if(nread == 0) {
             printf("sockfd:%d EOF\n", clients[i]);
             close(clients[i]);
             clients[i] = -1;
+            FD_CLR(clients[i], &rd_set);
+            printf("\n");
           } else if(errno == EINTR){
             printf("read interrupted\n");
             goto try_again;
