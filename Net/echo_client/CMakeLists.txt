@@ -5,6 +5,13 @@ add_executable(
 		client_select.cpp
 		rwops.cpp
 )
+
+add_executable(
+		server_select
+		server_select.cpp
+		rwops.cpp
+)
+
 add_executable(
 		echo_client
 		echo_client.cpp
