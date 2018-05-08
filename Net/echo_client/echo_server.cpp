@@ -9,7 +9,7 @@
 #include "rwops.h"
 #include "signalproc.h"
 
-const int BUF_SIZE = 2048;
+const int BUF_SIZE = 256;
 
 char ip[] = "255.255.255.255";
 const unsigned short port = 3456;

@@ -5,7 +5,7 @@
 #include "uni.h"
 #include "rwops.h"
 
-const int BUF_SIZE = 2048;
+const int BUF_SIZE = 64;
 
 void str_cli(FILE *fp, int sockfd) {
   char send_line[BUF_SIZE], recv_line[BUF_SIZE];
@@ -20,8 +20,7 @@ void str_cli(FILE *fp, int sockfd) {
     int maxfdp1 = (fileno(fp)>sockfd?fileno(fp):sockfd) + 1;
     select(maxfdp1, &rd_set, nullptr, nullptr, nullptr);
     if(FD_ISSET(sockfd, &rd_set)) {
-      ssize_t res = readn(sockfd, recv_line, sizeof(recv_line));
-      printf("<- %s\n",recv_line);
+      ssize_t res = read(sockfd, recv_line, sizeof(recv_line));
       if(res == 0) {
         printf("EOF for sockfd\n");
         break;
@@ -29,18 +28,20 @@ void str_cli(FILE *fp, int sockfd) {
         perror("srv terminate connection\n");
         break;
       } else {
-        writen(sockfd, recv_line, sizeof(recv_line));
+        writen(fileno(stdout), recv_line, sizeof(recv_line));
       }
     }
 
     if(FD_ISSET(fileno(fp), &rd_set)) {
-      if(readn(fileno(fp), send_line, sizeof(send_line)) == 0) {
+      if(read(fileno(fp), send_line, sizeof(send_line)) == 0) {
         printf("EOF for stdin\n");
         stdin_eof = true;
-        break;
+        shutdown(sockfd, SHUT_WR);
+        FD_CLR(sockfd, &rd_set);
+        continue;
       }
-      printf("-> %s\n",send_line);
-      writen(fileno(fp), send_line,  strlen(send_line));
+//      printf("-> %s\n",send_line);
+      writen(sockfd, send_line,  strlen(send_line));
     }
     memset(send_line, 0, sizeof(send_line));
     memset(recv_line, 0, sizeof(recv_line));
@@ -87,10 +88,13 @@ int main(int argc, char *argv[])
     perror("connect failed!");
     return -1;
   }
-  FILE *fp = fopen("CMakeLists.txt", "rb");
-  if(!fp) {
-    printf("\n");
+  FILE *fp = fopen("cmake_install.cmake", "rb");
+  if(fp) {
+    str_cli(fp, sockfd);
+  } else {
+    perror("fopen error\n");
+    exit(-1);
   }
-  str_cli(fp, sockfd);
+
   exit(0);
 }
