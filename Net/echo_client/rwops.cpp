@@ -68,7 +68,7 @@ int readn(int fd, char *vptr, size_t n) {
           return -1;
         }
       } else if(readed == 0) {
-        break;
+        break; //eof
       }
     }
     left -= readed;

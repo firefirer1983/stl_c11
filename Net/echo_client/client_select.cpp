@@ -9,16 +9,19 @@ const int BUF_SIZE = 2048;
 
 void str_cli(FILE *fp, int sockfd) {
   char send_line[BUF_SIZE], recv_line[BUF_SIZE];
-
+  bool stdin_eof = false;
   while(1) {
     fd_set rd_set;
     FD_ZERO(&rd_set);
     FD_SET(sockfd, &rd_set);
-    FD_SET(fileno(fp), &rd_set);
+    if(!stdin_eof) {
+      FD_SET(fileno(fp), &rd_set);
+    }
     int maxfdp1 = (fileno(fp)>sockfd?fileno(fp):sockfd) + 1;
     select(maxfdp1, &rd_set, nullptr, nullptr, nullptr);
     if(FD_ISSET(sockfd, &rd_set)) {
-      ssize_t res = readline(sockfd, recv_line, sizeof(recv_line));
+      ssize_t res = readn(sockfd, recv_line, sizeof(recv_line));
+      printf("<- %s\n",recv_line);
       if(res == 0) {
         printf("EOF for sockfd\n");
         break;
@@ -26,16 +29,18 @@ void str_cli(FILE *fp, int sockfd) {
         perror("srv terminate connection\n");
         break;
       } else {
-        fputs(recv_line, stdout);
+        writen(sockfd, recv_line, sizeof(recv_line));
       }
     }
 
     if(FD_ISSET(fileno(fp), &rd_set)) {
-      if(fgets(send_line, sizeof(send_line), fp) == nullptr) {
+      if(readn(fileno(fp), send_line, sizeof(send_line)) == 0) {
         printf("EOF for stdin\n");
+        stdin_eof = true;
         break;
       }
-      writen(sockfd, send_line,  strlen(send_line));
+      printf("-> %s\n",send_line);
+      writen(fileno(fp), send_line,  strlen(send_line));
     }
     memset(send_line, 0, sizeof(send_line));
     memset(recv_line, 0, sizeof(recv_line));
@@ -82,6 +87,10 @@ int main(int argc, char *argv[])
     perror("connect failed!");
     return -1;
   }
-  str_cli(stdin, sockfd);
+  FILE *fp = fopen("CMakeLists.txt", "rb");
+  if(!fp) {
+    printf("\n");
+  }
+  str_cli(fp, sockfd);
   exit(0);
 }
