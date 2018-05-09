@@ -97,4 +97,136 @@ int writen(int fd, char *vptr, size_t n) {
   return (n-left);
 }
 
+ssize_t _read(int fd, char *vptr, size_t size) {
+again:
+  ssize_t nread = read(fd, vptr, size);
+  if(nread >= 0) { // EOF of read
+    return nread;
+  } else {
+    if(errno == EINTR) {
+      goto again;
+    } else {
+      return nread;
+    }
+  }
+}
+
+ssize_t _write(int fd, char *vptr, size_t size) {
+  again:
+  ssize_t nwrite = write(fd, vptr, size);
+  if(nwrite >= 0) { // EOF of read
+    return nwrite;
+  } else {
+    if(errno == EINTR) {
+      goto again;
+    } else {
+      return nwrite;
+    }
+  }
+}
+
+int _accept(int listenfd, struct sockaddr *peer, socklen_t * len) {
+again:
+  int naccept = accept(listenfd, peer, len);
+  if(naccept == -1 && errno == EINTR) {
+    goto again;
+  }
+  return naccept;
+}
+
+int _bind(int fd, const struct sockaddr *__my_addr, socklen_t __addrlen) {
+again:
+  int res = bind(fd, __my_addr, __addrlen);
+  if(res < 0 && errno == EINTR) {
+    goto again;
+  }
+  return res;
+}
+int _connect (int fd, const struct sockaddr * __my_addr, socklen_t __addrlen) {
+again:
+  int res = bind(fd, __my_addr, __addrlen);
+  if(res < 0 && errno == EINTR) {
+    goto again;
+  }
+  return res;
+}
+
+int _listen (int fd, int __n) {
+again:
+  int res = listen(fd, __n);
+  if(res < 0 && errno == EINTR) {
+    goto again;
+  }
+  return res;
+}
+
+ssize_t _recv(int fd, void *__buff, size_t __len, int __flags) {
+again:
+  ssize_t res = recv(fd, __buff, __len, __flags);
+  if(res < 0 && errno == EINTR) {
+    goto again;
+  }
+  return res;
+}
+
+ssize_t _recvfrom (int fd, void *__buff, size_t __len, int __flags,
+                  struct sockaddr *__from, socklen_t *__fromlen) {
+again:
+  ssize_t res = recvfrom(fd, __buff, __len, __flags, __from, __fromlen);
+  if(res < 0 && errno == EINTR) {
+    goto again;
+  }
+  return res;
+}
+
+ssize_t _recvmsg(int s, struct msghdr *msg, int flags){
+again:
+  ssize_t res = recvmsg(s,msg,flags);
+  if(res < 0 && errno == EINTR) {
+    goto again;
+  }
+  return res;
+}
+ssize_t _send (int fd, const void *__buff, size_t __len, int __flags) {
+again:
+  ssize_t res = send (fd, __buff, __len,__flags);
+  if(res < 0 && errno == EINTR) {
+    goto again;
+  }
+  return res;
+}
+
+ssize_t _sendmsg(int s, const struct msghdr *msg, int flags){
+again:
+  ssize_t res = sendmsg(s,msg,flags);
+  if(res < 0 && errno == EINTR) {
+    goto again;
+  }
+  return res;
+}
+ssize_t _sendto (int fd, const void * __buf, size_t __len, int __flags,
+                const struct sockaddr *__to, socklen_t __tolen) {
+again:
+  ssize_t res = sendto(fd, __buf, __len, __flags,__to, __tolen);
+  if(res < 0 && errno == EINTR) {
+    goto again;
+  }
+  return res;
+}
+int _shutdown (int fd, int __flag) {
+again:
+  int res = shutdown(fd, __flag);
+  if(res < 0 && errno == EINTR) {
+    goto again;
+  }
+  return res;
+}
+int _socket (int __family, int __type, int __protocol) {
+again:
+  int res = socket (__family, __type, __protocol);
+  if(res < 0 && errno == EINTR) {
+    goto again;
+  }
+  return res;
+}
 #endif

@@ -29,26 +29,28 @@ void waitact(int sig, siginfo_t *ifo, void *ptr) {
 
 
 void str_echo(int fd) {
-  ssize_t n;
   char buf[BUF_SIZE] = {0};
-  again:
-  memset(buf, 0, sizeof(buf));
-  while((n=read(fd, buf, sizeof(buf))) > 0) {
-    buf[strlen(buf)+1] = 0;
-    writen(fd, buf, strlen(buf)+1);
-    memset(buf, 0, sizeof(buf));
-  }
-  if( n<0 && errno == EINTR){
-    goto again;
+  while(1) {
+    ssize_t nread = _read(fd, buf, sizeof(buf));
+    if(nread > 0) {
+      _write(fd, buf, nread);
+      memset(buf, 0, sizeof(buf));
+    } else if(nread == 0) {
+      printf("EOF of fd:%d\n", fd);
+      return ;
+    } else {
+      printf("error in read fd:%d\n", fd);
+      return ;
+    }
   }
 }
 
 int main(int argc, char *argv[])
 {
   int res = 0;
-  int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-  printf("sockfd:%d\n", sockfd);
-  if(sockfd < 0) {
+  int listenfd = socket(AF_INET, SOCK_STREAM, 0);
+  printf("listenfd:%d\n", listenfd);
+  if(listenfd < 0) {
     perror("socket create failed!");
     return -1;
   }
@@ -60,13 +62,13 @@ int main(int argc, char *argv[])
   sa_in.sin_addr.s_addr = INADDR_ANY;
 
   socklen_t len = sizeof(sa_in);
-  res = bind(sockfd, (sockaddr*)&sa_in, len);
+  res = bind(listenfd, (sockaddr*)&sa_in, len);
   if(res < 0) {
     perror("bind on 127.0.0.1:3456 failed!");
     return -1;
   }
 
-  res = listen(sockfd, 10);
+  res = listen(listenfd, 10);
   if(res < 0) {
     perror("listen failed!");
     return -1;
@@ -78,16 +80,12 @@ int main(int argc, char *argv[])
   while(1) {
     sockaddr csa;
     socklen_t csa_len;
-    int csock = accept(sockfd, &csa, &csa_len);
+    int csock = _accept(listenfd, &csa, &csa_len);
     printf("accept: csock:%d errno:%s\n",csock,strerror(errno));
-    if(csock<0 && errno == EINTR) {
-      printf("accept interrupt by sigchld  cscock:%d errno:%s\n", csock, strerror(errno));
-      continue;
-    }
 
     int pid = fork();
     if(pid == 0) {
-      close(sockfd);
+      close(listenfd);
       if(csock > 0) {
         str_echo(csock);
         close(csock);
