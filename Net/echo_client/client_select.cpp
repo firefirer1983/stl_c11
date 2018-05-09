@@ -20,33 +20,32 @@ void str_cli(FILE *fp, int sockfd) {
     int maxfdp1 = (fileno(fp)>sockfd?fileno(fp):sockfd) + 1;
     select(maxfdp1, &rd_set, nullptr, nullptr, nullptr);
     if(FD_ISSET(sockfd, &rd_set)) {
-      ssize_t nread = read(sockfd, recv_line, sizeof(recv_line));
+      ssize_t nread = _read(sockfd, recv_line, sizeof(recv_line));
       if(nread == 0) {
         printf("EOF for sockfd\n");
         break;
-      } else if(nread == -1) {
+      } else if(nread < 0) {
         perror("srv terminate connection\n");
         break;
       } else {
-        writen(fileno(stdout), recv_line,nread );
+        _write(fileno(stdout), recv_line, nread);
       }
     }
 
     if(FD_ISSET(fileno(fp), &rd_set)) {
-      ssize_t nread = read(fileno(fp), send_line, sizeof(send_line));
-      if(nread < 0) {
-        printf("read interrupted\n");
-      } else if(nread == 0) {
+      ssize_t nread = _read(fileno(fp), send_line, sizeof(send_line));
+      if(nread == 0) {
         printf("EOF for stdin\n");
         stdin_eof = true;
         shutdown(sockfd, SHUT_WR);
         FD_CLR(sockfd, &rd_set);
         continue;
+      } else if (nread < 0){
+        printf("read file error!\n");
       } else {
-
-        writen(sockfd, send_line,  nread);
-//        printf("%s\n", send_line);
+        _write(sockfd, send_line,  nread);
       }
+//      printf("-> %s\n",send_line);
     }
     memset(send_line, 0, sizeof(send_line));
     memset(recv_line, 0, sizeof(recv_line));
