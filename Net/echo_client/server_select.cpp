@@ -92,8 +92,10 @@ int main(int argc, char *argv[])
           ssize_t nread = _read(clients[i], buf, sizeof(buf));
           if(nread > 0) {
             ssize_t nwrite = _write(clients[i], buf, nread);
+
             if(nwrite < 0) {
-              printf("shit happen in %d write!\n", clients[i]);
+              printf("write error csock:%d\n",clients[i]);
+              perror("shit happen in %d write!");
             }
             FD_SET(clients[i], &rd_set);
           } else if(nread == 0) {
@@ -110,6 +112,7 @@ int main(int argc, char *argv[])
           nready --;
           if(!nread) {
             break;
+
           }
         }
       }
