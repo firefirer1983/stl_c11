@@ -1,9 +1,10 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
-
+#include <poll.h>
 #include <cstdlib>
 #include <sys/wait.h>
+#include <climits>
 
 #include "uni.h"
 #include "rwops.h"
@@ -15,25 +16,30 @@ char ip[] = "255.255.255.255";
 const unsigned short port = 3456;
 
 void str_echo(int fd) {
-  ssize_t n;
   char buf[BUF_SIZE] = {0};
-  again:
-  memset(buf, 0, sizeof(buf));
-  while((n=read(fd, buf, sizeof(buf))) > 0) {
-    buf[strlen(buf)+1] = 0;
-    writen(fd, buf, strlen(buf)+1);
-    memset(buf, 0, sizeof(buf));
-  }
-  if( n<0 && errno == EINTR){
-    goto again;
+  while(1) {
+    ssize_t nread = _read(fd, buf, sizeof(buf));
+    if(nread > 0) {
+      _write(fd, buf, nread);
+      memset(buf, 0, sizeof(buf));
+    } else if(nread == 0) {
+      printf("EOF of fd:%d\n", fd);
+      return ;
+    } else {
+      printf("error in read fd:%d\n", fd);
+      return ;
+    }
   }
 }
+
 const unsigned CLIENT_MAX_NUM = 16;
+typedef struct pollfd pollfd_t;
+typedef pollfd_t* pollfd_ptr;
 int main(int argc, char *argv[])
 {
   int res = 0;
   int listenfd = socket(AF_INET, SOCK_STREAM, 0);
-  printf("listenfd:%d\n", listenfd);
+  printf("listenfd => %d\n", listenfd);
   if(listenfd < 0) {
     perror("socket create failed!");
     return -1;
@@ -59,64 +65,94 @@ int main(int argc, char *argv[])
   }
 
   printf("Datetime server is on, pid:%d\n",getpid());
-  fd_set rd_set;
-  int clients[CLIENT_MAX_NUM] = {-1};
-  int maxfdp1 = sizeof(clients) + 1;
-  FD_ZERO(&rd_set);
+  pollfd_t *clients = new pollfd_t[CLIENT_MAX_NUM];
+  memset(clients, 0, sizeof(pollfd_t)*CLIENT_MAX_NUM);
+  for(unsigned n=0; n<CLIENT_MAX_NUM; n++) {
+    clients[n].fd = -1;
+  }
+  unsigned npoll = 0;
+  clients[npoll].events = POLLRDNORM;
+  clients[npoll].fd = listenfd;
+  ++ npoll;
   while(1) {
-    FD_SET(listenfd, &rd_set);
-    int nready = select(maxfdp1, &rd_set, nullptr, nullptr, nullptr);
+    int nready = poll(clients, npoll, -1);
 
-    if(FD_ISSET(listenfd, &rd_set)) {
+    if(nready < 0) {
+      perror("poll error!\n");
+      break;
+    }
+
+    if(clients[0].revents & POLLRDNORM) {
       sockaddr csa;
       socklen_t csa_len = sizeof(sockaddr);
       int csock = _accept(listenfd, &csa, &csa_len);
-
       if(csock > 0) {
-        clients[(unsigned)csock] = csock;
-        FD_SET(csock, &rd_set);
-      }  else {
+        if(npoll == CLIENT_MAX_NUM - 1) {
+          printf("clients queue overflow\n");
+          close(csock);
+        } else {
+          for(unsigned idx = 1; idx < CLIENT_MAX_NUM; idx ++) {
+            if(clients[idx].fd == -1) {
+              memset(&clients[idx], 0, sizeof(pollfd_t));
+              clients[idx].fd = csock;
+              clients[idx].events = POLLRDNORM;
+              ++ npoll;
+              printf("clients[%u]:%d connect req, %u clients\n", idx, csock, npoll);
+              break;
+            }
+          }
+        }
+        nready --;
+        if(!nready) {
+          continue;
+        }
+      } else {
         perror("accept failed!\n");
         break;
       }
-      nready --;
-      if(!nready) {
+
+    }
+
+    for(unsigned idx = 1; idx < CLIENT_MAX_NUM; idx ++) {
+      pollfd_t *client_pollfd =  &clients[idx];
+      if(!client_pollfd || (client_pollfd->fd <= 0)) {
         continue;
       }
-    }
-    for(unsigned i=0; i<CLIENT_MAX_NUM; i++) {
-      if(clients[i] != -1) {
-        if(FD_ISSET(clients[i], &rd_set)) {
-          char buf[BUF_SIZE] = {0};
-          memset(buf, 0, sizeof(buf));
-          ssize_t nread = _read(clients[i], buf, sizeof(buf));
-          if(nread > 0) {
-            ssize_t nwrite = _write(clients[i], buf, nread);
+//      printf("clients[%u]:%d revent:0x%02X\n", idx, clients[idx].fd, clients[idx].revents);
+      if(client_pollfd && (client_pollfd->revents & (POLLRDNORM|POLLERR))) {
+        char buf[BUF_SIZE] = {0};
+        memset(buf, 0, sizeof(buf));
+        ssize_t nread = _read(client_pollfd->fd, buf, sizeof(buf));
 
-            if(nwrite < 0) {
-              printf("write error csock:%d\n",clients[i]);
-              perror("shit happen in %d write!");
-            }
-            FD_SET(clients[i], &rd_set);
-          } else if(nread == 0) {
-            printf("csock:%d EOF\n", clients[i]);
-            close(clients[i]);
-            clients[i] = -1;
-            FD_CLR(clients[i], &rd_set);
-          } else{
-            perror("read error\n");
-            close(clients[i]);
-            clients[i] = -1;
-            FD_CLR(clients[i], &rd_set);
-          }
-          nready --;
-          if(!nread) {
-            break;
+        if(nread > 0) {
+          ssize_t nwrite = _write(client_pollfd->fd, buf, nread);
 
+          if(nwrite < 0) {
+            printf("write error csock:%d\n",client_pollfd->fd);
+            perror("shit happen in %d write!");
           }
+        } else if(nread == 0) {
+          printf("csock:%d EOF\n", client_pollfd->fd);
+          close(client_pollfd->fd);
+          client_pollfd->fd = -1;
+          -- npoll;
+        } else{
+          if(errno == ECONNRESET) {
+            -- npoll;
+            printf("client:%d reset, %u clients\n", client_pollfd->fd, npoll);
+            close(client_pollfd->fd);
+            client_pollfd->fd = -1;
+          } else {
+            printf("client:%d read error, %u clients\n", client_pollfd->fd, npoll);
+          }
+        }
+        nready --;
+        if(!nread) {
+          break;
         }
       }
     }
   }
+  delete[] clients;
   exit(0);
 }
