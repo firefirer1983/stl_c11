@@ -7,4 +7,5 @@
 #include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <poll.h>
 #endif //_UNI_H_

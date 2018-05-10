@@ -4,6 +4,7 @@
 #include "uni.h"
 #include "rwops.h"
 
+
 ssize_t readbf(int fd, char *vptr) {
 
   static size_t readed;
@@ -144,7 +145,7 @@ again:
 }
 int _connect (int fd, const struct sockaddr * __my_addr, socklen_t __addrlen) {
 again:
-  int res = bind(fd, __my_addr, __addrlen);
+  int res = connect(fd, __my_addr, __addrlen);
   if(res < 0 && errno == EINTR) {
     goto again;
   }
@@ -229,4 +230,5 @@ again:
   }
   return res;
 }
+
 #endif
