@@ -11,6 +11,17 @@ add_executable(
 		server_select.cpp
 		rwops.cpp
 )
+add_executable(
+		client_poll
+		client_poll.cpp
+		rwops.cpp
+)
+
+add_executable(
+		server_poll
+		server_poll.cpp
+		rwops.cpp
+)
 
 add_executable(
 		echo_client
