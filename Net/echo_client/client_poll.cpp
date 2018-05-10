@@ -5,14 +5,16 @@
 #include "rwops.h"
 
 const int BUF_SIZE = 64;
+typedef pollfd pollft_t;
+
 const unsigned POLLFD_NUM = 2;
 void str_cli(FILE *fp, int sockfd) {
   char send_line[BUF_SIZE], recv_line[BUF_SIZE];
-  struct pollfd fds[2];
+  pollft_t *fds = new pollft_t[2];
   memset(fds, 0, sizeof(struct pollfd)*2);
-  fds[0].fd = fileno(fp);
+  fds[0].fd = sockfd;
   fds[0].events = POLLRDNORM;
-  fds[1].fd = sockfd;
+  fds[1].fd = fileno(fp);
   fds[1].events = POLLRDNORM;
   unsigned npoll = 2;
   while(1) {
@@ -22,12 +24,9 @@ void str_cli(FILE *fp, int sockfd) {
       perror("poll error\n");
       return ;
     }
-//    for(unsigned n=0; n<npoll; n++) {
-//      printf("poll fds[%u]:%d  revent:0x%02X\n", n, fds[n].fd, fds[n].revents);
-//    }
-    if(fds[1].revents&(POLLRDNORM|POLLERR)) {
+    if(fds[0].revents&(POLLRDNORM|POLLERR)) {
       ssize_t nread = _read(sockfd, recv_line, sizeof(recv_line));
-
+      fds[0].revents = 0;
       if(nread == 0) {
         printf("EOF for sockfd\n");
         break;
@@ -43,14 +42,14 @@ void str_cli(FILE *fp, int sockfd) {
       }
     }
 
-    if(fds[0].revents&(POLLRDNORM|POLLERR)) {
+    if(fds[1].revents&(POLLRDNORM)) {
+
       ssize_t nread = _read(fileno(fp), send_line, sizeof(send_line));
       if(nread == 0) {
-        printf("EOF for stdin\n");
-        fds[0].fd = -1;
-//        --npoll;
+        fds[1].fd = -1;
+        fds[1].revents = 0;
+        --npoll;
         shutdown(sockfd, SHUT_WR);
-        continue;
       } else if (nread < 0){
         printf("read file error!\n");
       } else {
@@ -60,6 +59,7 @@ void str_cli(FILE *fp, int sockfd) {
     memset(send_line, 0, sizeof(send_line));
     memset(recv_line, 0, sizeof(recv_line));
   }
+  delete []fds;
 }
 
 char ip[] = "255.255.255.255";
