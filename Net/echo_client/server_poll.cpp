@@ -96,6 +96,7 @@ int main(int argc, char *argv[])
               memset(&clients[idx], 0, sizeof(pollfd_t));
               clients[idx].fd = csock;
               clients[idx].events = POLLRDNORM;
+              clients[idx].revents = 0;
               ++ npoll;
               printf("clients[%u]:%d connect req, %u clients\n", idx, csock, npoll);
               break;
@@ -136,6 +137,7 @@ int main(int argc, char *argv[])
           printf("csock:%d EOF\n", client_pollfd->fd);
           close(client_pollfd->fd);
           client_pollfd->fd = -1;
+          client_pollfd->revents = 0;
           -- npoll;
         } else{
           if(errno == ECONNRESET) {
@@ -143,6 +145,7 @@ int main(int argc, char *argv[])
             printf("client:%d reset, %u clients\n", client_pollfd->fd, npoll);
             close(client_pollfd->fd);
             client_pollfd->fd = -1;
+            client_pollfd->revents = 0;
           } else {
             printf("client:%d read error, %u clients\n", client_pollfd->fd, npoll);
           }
