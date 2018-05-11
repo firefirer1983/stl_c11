@@ -1,55 +1,65 @@
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
-#include <sys/fcntl.h>
 #include "uni.h"
 #include "rwops.h"
 
 const int BUF_SIZE = 64;
+typedef pollfd pollft_t;
 
+const unsigned POLLFD_NUM = 2;
 void str_cli(FILE *fp, int sockfd) {
   char send_line[BUF_SIZE], recv_line[BUF_SIZE];
-  bool stdin_eof = false;
+  pollft_t *fds = new pollft_t[2];
+  memset(fds, 0, sizeof(struct pollfd)*2);
+  fds[0].fd = sockfd;
+  fds[0].events = POLLRDNORM;
+  fds[1].fd = fileno(fp);
+  fds[1].events = POLLRDNORM;
+  unsigned npoll = 2;
   while(1) {
-    fd_set rd_set;
-    FD_ZERO(&rd_set);
-    FD_SET(sockfd, &rd_set);
-    if(!stdin_eof) {
-      FD_SET(fileno(fp), &rd_set);
+
+    int nready = poll(fds, npoll, -1);
+    if(nready < 0) {
+      perror("poll error\n");
+      return ;
     }
-    int maxfdp1 = (fileno(fp)>sockfd?fileno(fp):sockfd) + 1;
-    select(maxfdp1, &rd_set, nullptr, nullptr, nullptr);
-    if(FD_ISSET(sockfd, &rd_set)) {
+    if(fds[0].revents&(POLLRDNORM|POLLERR)) {
       ssize_t nread = _read(sockfd, recv_line, sizeof(recv_line));
+      fds[0].revents = 0;
       if(nread == 0) {
         printf("EOF for sockfd\n");
         break;
       } else if(nread < 0) {
-        perror("srv terminate connection\n");
+        if(errno == ECONNRESET) {
+          perror("connect reset by peer\n");
+        } else {
+          perror("srv terminate connection\n");
+        }
         break;
       } else {
         _write(fileno(stdout), recv_line, nread);
       }
     }
 
-    if(FD_ISSET(fileno(fp), &rd_set)) {
+    if(fds[1].revents&(POLLRDNORM)) {
+
       ssize_t nread = _read(fileno(fp), send_line, sizeof(send_line));
       if(nread == 0) {
-        printf("EOF for stdin\n");
-        stdin_eof = true;
+        fds[1].fd = -1;
+        fds[1].revents = 0;
+        --npoll;
         shutdown(sockfd, SHUT_WR);
-        FD_CLR(sockfd, &rd_set);
-        continue;
       } else if (nread < 0){
         printf("read file error!\n");
       } else {
         _write(sockfd, send_line,  nread);
       }
-//      printf("-> %s\n",send_line);
     }
     memset(send_line, 0, sizeof(send_line));
     memset(recv_line, 0, sizeof(recv_line));
   }
+  delete []fds;
 }
 
 char ip[] = "255.255.255.255";
@@ -80,17 +90,17 @@ int main(int argc, char *argv[])
     perror("pton failed!");
     return -1;
   }
-  int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-  printf("sockfd:%d sizeof(fd_set):%lu\n", sockfd, sizeof(fd_set));
+  int sockfd = _socket(AF_INET, SOCK_STREAM, 0);
+  printf("sockfd:%d \n", sockfd);
   if(sockfd < 0) {
     perror("socket create failed!");
-    return -1;
+    exit(-1);
   }
   socklen_t len = sizeof(sa_in);
-  res = connect(sockfd, (sockaddr *)&sa_in, len);
+  res = _connect(sockfd, (sockaddr *)&sa_in, len);
   if(res < 0) {
     perror("connect failed!");
-    return -1;
+    exit(-1);
   }
   FILE *fp = fopen("cmake_install.cmake", "rb");
   if(fp) {
