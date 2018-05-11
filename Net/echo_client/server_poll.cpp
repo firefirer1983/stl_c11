@@ -115,16 +115,17 @@ int main(int argc, char *argv[])
 
     for(unsigned idx = 1; idx < CLIENT_MAX_NUM; idx ++) {
       pollfd_t *client_pollfd =  &clients[idx];
-      if(!client_pollfd || (client_pollfd->fd <= 0)) {
+      if(client_pollfd->fd <= 0) {
         continue;
       }
 //      printf("clients[%u]:%d revent:0x%02X\n", idx, clients[idx].fd, clients[idx].revents);
-      if(client_pollfd && (client_pollfd->revents & (POLLRDNORM|POLLERR))) {
+      if(client_pollfd->revents & (POLLRDNORM|POLLERR)) {
         char buf[BUF_SIZE] = {0};
         memset(buf, 0, sizeof(buf));
         ssize_t nread = _read(client_pollfd->fd, buf, sizeof(buf));
 
         if(nread > 0) {
+          printf("wr:%s\n", buf);
           ssize_t nwrite = _write(client_pollfd->fd, buf, nread);
 
           if(nwrite < 0) {
