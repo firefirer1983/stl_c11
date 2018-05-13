@@ -31,4 +31,5 @@ _RWOPS_EXT_ ssize_t _sendto (int fd, const void * __buf, size_t __len, int __fla
                  const struct sockaddr *__to, socklen_t __tolen);
 _RWOPS_EXT_ int _shutdown (int fd, int __flag);
 _RWOPS_EXT_ int _socket (int __family, int __type, int __protocol);
+_RWOPS_EXT_ int daemonize(const char *name, int facility);
 #endif //_RWOPS_H_

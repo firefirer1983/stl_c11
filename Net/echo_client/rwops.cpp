@@ -3,7 +3,9 @@
 
 #include "uni.h"
 #include "rwops.h"
-
+#include <cstdlib>
+#include <syslog.h>
+#include <signal.h>
 
 ssize_t readbf(int fd, char *vptr) {
 
@@ -230,5 +232,38 @@ again:
   }
   return res;
 }
+const unsigned FD_MAX = 64;
+extern int daemon_proc;
+int daemonize(const char *name, int facility) {
+  pid_t pid;
+  if((pid = fork()) < 0) {
+    printf("fork failed!\n");
+    return -1;
+  } else if(pid > 0) {
+    exit(0);
+  }
+  if(setsid() < 0) {
+    printf("setsid failed!\n");
+    exit(0);
+  }
+  signal(SIGHUP, SIG_IGN);
+  if((pid = fork()) < 0) {
+    printf("fork again failed!\n");
+    exit(0);
+  } else if(pid > 0) {
+    exit(0);
+  }
+  /* change work directory to "/" */
+  chdir("/");
+  for(unsigned f=0;f<FD_MAX;f++) {
+    close(f);
+  }
+  /* redirect stdin, stdout, stderr to /dev/null */
+  open("/dev/null", O_RDONLY); // stdin = open("/dev/null",O_RDONLY) ==> (stdin=0)
+  open("/dev/null", O_RDWR);   // stdout = open("/dev/null, O_RDWR) ==> (stdout=1）
+  open("/dev/null", O_RDWR);   // stderr= open("/dev/null, O_RDWR) ==> (stdout=2)
 
+  openlog(name, LOG_PID, facility);
+  return 0;
+}
 #endif

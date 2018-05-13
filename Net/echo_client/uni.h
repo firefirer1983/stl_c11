@@ -8,4 +8,5 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <poll.h>
+#include <sys/fcntl.h>
 #endif //_UNI_H_

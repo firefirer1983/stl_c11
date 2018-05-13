@@ -17,6 +17,11 @@ add_executable(
 		rwops.cpp
 )
 
+add_executable(
+		server_dpoll
+		server_dpoll.cpp
+		rwops.cpp
+)
 
 add_executable(
 		server_poll
