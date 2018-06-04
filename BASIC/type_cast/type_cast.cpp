@@ -19,6 +19,11 @@ enum EN {
   EN_2ND
 };
 
+template <typename TypeFrom,typename TypeTo>
+inline TypeTo implicity_cast(const TypeFrom &f) {
+  return f;
+};
+
 TEST_F(GTest, TYPE_SIZE_GTest){
   EXPECT_EQ(sizeof(int), 4);
   EXPECT_EQ(sizeof(short), 2);
@@ -134,6 +139,36 @@ TEST_F(GTest, STAITC_VS_DYNAMIC_CAST_GTest){
   }
 
 }
+
+template <int N>
+void ary_print(const char (&ary)[N]) {
+  for(int i=0; i<N; i++) {
+    printf("%d ",ary[i]);
+  }
+  printf("\n");
+}
+void ary_print(const char *ary, int len) {
+  for(int i=0; i<len; i++) {
+    printf("%d ", ary[i]);
+  }
+  printf("\n");
+}
+#define mAryPrint(ary) \
+do{\
+  ary_print(ary, sizeof(ary));\
+}while(0)
+
+TEST_F(GTest, IMPLICILITY_CAST) {
+  char ary[20];
+  char (&rary)[20] = ary;
+  for(int i=0; i<20; i++) {
+    rary[i] = i;
+  }
+  ary_print(ary);
+  ary_print(ary, sizeof(ary));
+  mAryPrint(ary);
+}
+
 
 int main(int argc, char *argv[]) {
   ::testing::InitGoogleTest(&argc, argv);

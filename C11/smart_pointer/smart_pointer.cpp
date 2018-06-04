@@ -16,14 +16,14 @@ protected:
 class Container{
 public:
   Container(int val) {
-    cout << "Container Created" << endl;
     value = val;
+    cout << "Container Constructor=> val:" << val << endl;
   };
   Container(const Container &c) {
-    cout << "Copy Container" <<endl;
+    cout << "Copy Container=> val: " <<endl;
   }
   ~Container(){
-    cout << "Container Destroyed!" << endl;
+    cout << "Container Destroyed! => val:" << value << endl;
   }
   int value;
   int Get() {
@@ -31,11 +31,119 @@ public:
   }
 };
 
+
+class Shape{
+public:
+  Shape() { cout << "Shape Constructor" << endl; }
+  virtual ~Shape() { cout << "Shape Destructor" << endl; }
+  virtual void draw() const = 0;
+};
+
+class Circle: public Shape {
+  double center;
+  double radiums;
+public:
+  Circle(double c, double r):Shape(),
+           center(c),
+           radiums(r)
+  {
+    cout << "Circle Constructor" << endl;
+  }
+  ~Circle() { cout << "Circle Destructor" << endl; }
+
+  virtual void draw() const  { cout << "draw Circle" << endl; }
+};
+
+class Smile: public Circle {
+public:
+  Smile(double x, double y):
+      Circle(0, 5),
+      pos(new double[2])
+  {
+    pos[0] = x;
+    pos[1] = y;
+    cout << "Smile Constructor" << endl;
+  }
+
+  ~Smile() {
+    cout << "Smile Destructor" << endl;
+    delete[] pos;
+    pos = nullptr;
+  }
+  void set(double x, double y) {
+    pos[0] = x;
+    pos[1] = y;
+  }
+  void draw() const override {
+    Circle::draw();
+    printf("draw Smile x:%f y:%f\n",pos[0], pos[1]);
+  }
+
+private:
+  double *pos;
+};
+
+class Vector {
+public:
+  Vector(std::initializer_list<double>lst):
+      sz_(lst.size()),
+      ary_(new double[sz_]){
+    int i = 0;
+    for(auto &m:lst) {
+      ary_[i] = m;
+      ++i;
+    }
+  }
+
+  void clear() {
+    for(unsigned i=0; i!=sz_; i++) {
+      ary_[i] = 0;
+    }
+  }
+  void show() {
+    for(unsigned i=0; i!=sz_; i++) {
+      printf("%f ",ary_[i]);
+    }
+    printf("\n");
+  }
+  ~Vector(){
+    if(ary_) {
+//      delete[] ary_;
+//      ary_ = nullptr;
+    }
+  }
+private:
+  size_t sz_;
+  double *ary_;
+};
+
+
+
+TEST_F(GTest, CopyConstructor_GTest){
+  Vector v1({1.0,2.0,3.0,4.0,5.0});
+  Vector v2 = v1;
+  v1.show();
+  v2.show();
+  v1.clear();
+  v2.show();
+}
+
+unique_ptr<Container> getOneContainer() {
+//  {
+//    unique_ptr<Container>p1  =  unique_ptr<Container>(new Container(5));
+//    unique_ptr<Container>ret = std::move(p1);
+//  }
+  return std::move(unique_ptr<Container>(new Container(10)));
+}
 TEST_F(GTest, UNIQUE_PTR_GTest){
   {
     unique_ptr<Container> cPtr(new Container(7));
     cout << "Get return for unique_ptr " << cPtr->Get() << endl;
   }
+  {
+    unique_ptr<Container> outer = getOneContainer();
+  }
+
 }
 
 TEST_F(GTest, SHARED_PTR_GTest){
