@@ -3,7 +3,8 @@
 #include <vector>
 #include <ostream>
 #include <queue>
-
+#include <pthread.h>
+#include <functional>
 using std::vector;
 using std::string;
 using std::cout;
@@ -38,6 +39,27 @@ TEST_F(GTest, Init_GTest) {
   }
 
   std::cout << std::endl;
+}
+
+typedef std::function<void ()> Functor;
+
+class Once {
+public:
+  Once(Functor f) {
+    func_ = f;
+  }
+  void take() {
+  }
+private:
+  static Functor func_;
+  static pthread_once_t once_;
+};
+
+pthread_once_t Once::once_ = PTHREAD_ONCE_INIT;
+
+TEST_F(GTest, VectorOpes_GTest) {
+  Once o(std::bind(printf, "%s\n", "hello world!\n"));
+  o.take();
 }
 
 int main(int argc, char *argv[]) {
