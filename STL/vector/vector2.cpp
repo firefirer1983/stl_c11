@@ -51,7 +51,7 @@ public:
   void take() {
   }
 private:
-  static Functor func_;
+  Functor func_;
   static pthread_once_t once_;
 };
 
